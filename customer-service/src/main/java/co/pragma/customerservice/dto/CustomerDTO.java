@@ -17,5 +17,6 @@ public class CustomerDTO implements Serializable{
 	private String identificacion;
 	private int edad;
 	private Long idCiudad;
+	private String photoUrl;
 	
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import co.pragma.customerservice.entity.Customer;
 import co.pragma.customerservice.entity.TipoIdentificacion;
+import co.pragma.customerservice.client.PhotoClient;
 import co.pragma.customerservice.dto.*;
 import co.pragma.customerservice.exception.CustomerException;
 import co.pragma.customerservice.mapper.Mapper;
@@ -26,12 +27,19 @@ public class ImpService implements ICustomerService{
 	@Autowired
 	private Mapper<CustomerDTO, Customer> mapper;
 	
+	@Autowired
+	private PhotoClient fotoClient;
+	
 	@Override
 	public List<CustomerDTO> getCustomers() {
 		List<Customer> customersDB = repository.findAll();
 		if(customersDB.isEmpty())
 			throw new CustomerException(HttpStatus.NOT_FOUND, "No existen clientes en la Base de Datos");
-		return mapper.EntityToDto(customersDB);
+		List<CustomerDTO> list = mapper.EntityToDto(customersDB);
+		for(int i = 0; i < list.size(); i++) {
+			list.get(i).setPhotoUrl(fotoClient.getFoto(list.get(i).getIdTipoIdentificacion(), list.get(i).getIdentificacion()).getId());
+		}
+		return list;
 	}
 
 	@Override
@@ -39,7 +47,11 @@ public class ImpService implements ICustomerService{
 		Customer customerDB = repository.getById(id);
 		if(customerDB == null)
 			throw new CustomerException(HttpStatus.NOT_FOUND, "No existe el cliente en la Base de Datos");
-		return mapper.EntityToDto(customerDB);
+		CustomerDTO dto = mapper.EntityToDto(customerDB);
+		PhotoDto foto = fotoClient.getFoto(dto.getIdTipoIdentificacion(), dto.getIdentificacion());
+		String idFoto = foto.getId();
+		dto.setPhotoUrl(idFoto);
+		return dto;
 	}
 
 	@Override
@@ -77,7 +89,11 @@ public class ImpService implements ICustomerService{
 		Customer customerDB = repository.findByIdentificacionAndTipoIdentificacion(identificacion, tipoDB);
 		if(customerDB == null)
 			throw new CustomerException(HttpStatus.NOT_FOUND, "El cliente no existe en la Base de Datos");
-		return mapper.EntityToDto(customerDB);
+		CustomerDTO dto = mapper.EntityToDto(customerDB);
+		PhotoDto foto = fotoClient.getFoto(dto.getIdTipoIdentificacion(), dto.getIdentificacion());
+		String idFoto = foto.getId();
+		dto.setPhotoUrl(idFoto);
+		return dto;
 	}
 
 	@Override
