@@ -1,0 +1,27 @@
+server:
+  port: 8084
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8083/eureka/
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: servicio-cliente
+          uri: lb://service-customer
+          predicates:
+            - Path=/customer/**
+        - id: servicio-foto
+          uri: lb://service-foto
+          predicates:
+            - Path=/foto/**
+        - id: servicio-client
+          uri: lb://service-customer
+          predicates:
+            - Path=/id-type/**
